@@ -59,6 +59,28 @@ func TestClientVault_LoginAppRole(t *testing.T) {
 	}
 }
 
+func TestClientVault_LoginWithUnknownAuthMethod(t *testing.T) {
+
+	t.Logf("Given the vault server is up and running")
+	{
+		loginResponse, _ := ioutil.ReadFile("data/login_response.json")
+		secretResponse, _ := ioutil.ReadFile("data/secret_response.json")
+		server := StubLoginAnGetSecretEndpoints(loginResponse, secretResponse)
+		defer server.Close()
+
+		t.Logf("\tWhen Sending login request to endpoint:  \"%s\"", "\\v1\\auth\\kubernetes\\login")
+		{
+			config := Config{AuthMethod: "Dummy", RoleId: "role_id", SecretId: "secret_id", Address: server.URL}
+			_, err := Login(config)
+			if err.Error() == "Only the following auth method are supported:KUBERNETES,APP_ROLE" {
+				t.Logf("\t\tError message should be: \"%s\" . %v", err.Error(), CheckMark)
+			} else {
+				t.Errorf("\t\tError message should be: \"%s\" . %v", err.Error(), BallotX)
+			}
+		}
+	}
+}
+
 func TestClientVault_Create_Client_Invalid_response(t *testing.T) {
 
 	t.Logf("Given the vault server is up and running")
