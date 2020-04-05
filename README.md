@@ -1,4 +1,5 @@
 # Vault Secret Loader
+![Go](https://github.com/akhettar/vault-secrets-loader/workflows/Go/badge.svg)
 
 ![Digging for secrets](working-hard.png) 
 

@@ -53,33 +53,34 @@ func init() {
 		log.Ldate|log.Ltime|log.Llongfile)
 }
 
-// The authentication method
+// AuthMethod the authentication method
 type AuthMethod string
 
 // Config for vault
 type Config struct {
-	// Auth Method
+
+	// AuthMethod the authentication method
 	AuthMethod AuthMethod
 
-	// Vault Token
+	// Token the vault kube token only required fro kube auth method
 	Token string
 
-	// The role attached to the JWT vault token
+	// Role The role attached to the JWT vault token
 	Role string
 
-	// Secret path
+	// SecretPath a string the secret path
 	SecretPath string
 
-	// Address of the Vault server
+	// Address the vault url
 	Address string
 
-	// TLS config
+	// TLSConfig the tls config
 	TLSConfig TLSConfig
 
-	// RoleId
+	// RoleId only required for App role auth method
 	RoleId string
 
-	//SecretId
+	//SecretId only required for app role auth method
 	SecretId string
 }
 
@@ -114,12 +115,13 @@ type SecretLoader struct {
 	config Config
 }
 
-// KubeAuthBody used for Vault login
+// KubeAuthBody is the body request for the vault login request
 type KubeAuthBody struct {
 	Role string `json:"role"`
 	Jwt  string `json:"jwt, string"`
 }
 
+// AppRoleAuthBody is the body request for the vault login request
 type AppRoleAuthBody struct {
 	RoleID   string `json:"role_id"`
 	SecretID string `json:"secret_id, string"`
@@ -150,7 +152,7 @@ func NewClient(cf Config) (SecretLoader, error) {
 	return SecretLoader{data: secrets, config: cf}, nil
 }
 
-// Attempt login to the vault server using the given auth token
+// Login to the vault server using the given auth token
 func Login(cf Config) (string, error) {
 	loginRequest, err := getLoginEndpoint(cf)
 	if err != nil {
