@@ -15,7 +15,7 @@ const (
 	Token         = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjZMNUxjVG1tUFpwa0NCaUpMdTNIRnNsZUNvRmRyejFmY3ZOaGxiSUo2LUEifQ.eyJpc3MiOiJrd"
 )
 
-func TestClientVault_Login(t *testing.T) {
+func TestClientVault_LoginKubeAuthMethod(t *testing.T) {
 
 	t.Logf("Given the vault server is up and running")
 	{
@@ -27,6 +27,28 @@ func TestClientVault_Login(t *testing.T) {
 		t.Logf("\tWhen Sending login request to endpoint:  \"%s\"", "\\v1\\auth\\kubernetes\\login")
 		{
 			config := Config{AuthMethod: KubernetesAuth, Token: Token, Role: "app-role", Address: server.URL}
+			token, _ := Login(config)
+			if token == ExpectedToken {
+				t.Logf("\t\tShould receive the expected token \"%s\" . %v", ExpectedToken, CheckMark)
+			} else {
+				t.Errorf("\t\tShould receive the expected token \"%s\" . %v", ExpectedToken, BallotX)
+			}
+		}
+	}
+}
+
+func TestClientVault_LoginAppRole(t *testing.T) {
+
+	t.Logf("Given the vault server is up and running")
+	{
+		loginResponse, _ := ioutil.ReadFile("data/login_response.json")
+		secretResponse, _ := ioutil.ReadFile("data/secret_response.json")
+		server := StubLoginAnGetSecretEndpoints(loginResponse, secretResponse)
+		defer server.Close()
+
+		t.Logf("\tWhen Sending login request to endpoint:  \"%s\"", "\\v1\\auth\\kubernetes\\login")
+		{
+			config := Config{AuthMethod: AppRoleAuth, RoleId: "role_id", SecretId: "secret_id", Address: server.URL}
 			token, _ := Login(config)
 			if token == ExpectedToken {
 				t.Logf("\t\tShould receive the expected token \"%s\" . %v", ExpectedToken, CheckMark)
@@ -274,6 +296,8 @@ func StubLoginAnGetSecretEndpoints(loginResponse []byte, secretResponse []byte) 
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.RequestURI {
 		case "/v1/auth/kubernetes/login":
+			w.Write(loginResponse)
+		case "/v1/auth/approle/login":
 			w.Write(loginResponse)
 		case "/v1/secret/app/tag-service/dev":
 			w.Write(secretResponse)

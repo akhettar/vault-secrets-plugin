@@ -234,12 +234,9 @@ func loadAllSecrets(token string, cf Config) (map[string]interface{}, error) {
 
 	// Read all the secrets
 	secret, err := client.Logical().Read(cf.SecretPath)
-	if err != nil {
+	if err != nil || secret == nil {
 		Error.Printf("Failed to load the secrets from the given path: %s", cf.SecretPath)
 		return nil, err
-	}
-	if secret == nil {
-		return nil, errors.New("No secrest found for the given path")
 	}
 	return secret.Data, nil
 }
