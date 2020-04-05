@@ -7,8 +7,8 @@
 ![Digging for secrets](working-hard.png) 
 
 
-This Go library is used to load secrets from the vault server into a global map (memory). This library has been inspired from [the Spring Vault Cloud](https://cloud.spring.io/spring-cloud-vault/reference/html/) by which a micro service or an application loads its secrets
-from the vault server at the start up. So the secrets are loaded once into the memory and are accessible throughout the application lifecycle.
+This Go library is used to load secrets from the vault server into a global map (memory). This library has been inspired from [the Spring Vault Cloud](https://cloud.spring.io/spring-cloud-vault/reference/html/) by which a microservice or an application loads its secrets
+from the vault server at the startup. So the secrets are loaded once into the memory and are accessible throughout the application lifecycle.
 
 This library supports two types of vault authentication methods: `Kubernetes` and `App role` - see below more details on how to instantiate an instance of the vault client
 
