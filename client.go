@@ -1,0 +1,243 @@
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/hashicorp/vault/api"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+)
+
+const (
+	// AUTH used in the vault REST path for login endpoint
+	AUTH = "auth"
+
+	// ClientToken the json name field of the client token we get in the login response
+	ClientToken = "client_token"
+
+	// JWT vault token header for querying the secrets
+	JWT = "X-Vault-Token"
+
+	// DATA the json field object name representing the secrets
+	DATA = "data"
+
+	// Kubernetes auth
+	KubernetesAuth = "KUBERNETES"
+
+	// App Role
+	AppRoleAuth = "APP_ROLE"
+
+	// Login Endpoint
+	LoginEndpoint = "LOGIN_ENDPOINT"
+)
+
+var (
+	// Info logger
+	Info *log.Logger
+
+	// Error logger
+	Error *log.Logger
+)
+
+func init() {
+	Info = log.New(os.Stdout,
+		"INFO: ",
+		log.Ldate|log.Ltime|log.Llongfile)
+
+	Error = log.New(os.Stdout,
+		"ERROR: ",
+		log.Ldate|log.Ltime|log.Llongfile)
+}
+
+// The authentication method
+type AuthMethod string
+
+// Config for vault
+type Config struct {
+	// Auth Method
+	AuthMethod AuthMethod
+
+	// Vault Token
+	Token string
+
+	// The role attached to the JWT vault token
+	Role string
+
+	// Secret path
+	SecretPath string
+
+	// Address of the Vault server
+	Address string
+
+	// TLS config
+	TLSConfig TLSConfig
+
+	// RoleId
+	RoleId string
+
+	//SecretId
+	SecretId string
+}
+
+// TLSConfig contains the parameters needed to configure TLS on the HTTP client
+// used to communicate with Vault.
+type TLSConfig struct {
+	// CACert is the path to a PEM-encoded CA cert file to use to verify the
+	// Vault server SSL certificate.
+	CACert string
+
+	// CAPath is the path to a directory of PEM-encoded CA cert files to verify
+	// the Vault server SSL certificate.
+	CAPath string
+
+	// ClientCert is the path to the certificate for Vault communication
+	ClientCert string
+
+	// ClientKey is the path to the private key for Vault communication
+	ClientKey string
+
+	// TLSServerName, if set, is used to set the SNI host when connecting via
+	// TLS.
+	TLSServerName string
+
+	// Insecure enables or disables SSL verification
+	Insecure bool
+}
+
+// SecretLoader used for Vault HTTP client
+type SecretLoader struct {
+	data   map[string]interface{}
+	config Config
+}
+
+// KubeAuthBody used for Vault login
+type KubeAuthBody struct {
+	Role string `json:"role"`
+	Jwt  string `json:"jwt, string"`
+}
+
+type AppRoleAuthBody struct {
+	RoleID   string `json:"role_id"`
+	SecretID string `json:"secret_id, string"`
+}
+
+// LoginRequest
+type LoginRequest struct {
+	Body     []byte
+	Endpoint string
+}
+
+// NewClient returns an instance of the SecretLoader
+func NewClient(cf Config) (SecretLoader, error) {
+	// 1. Login to vault using the provided Token
+	token, err := Login(cf)
+	if err != nil {
+		return SecretLoader{}, err
+	}
+
+	// 2. Load all the secrets
+	secrets, err := loadAllSecrets(token, cf)
+	if err != nil {
+		return SecretLoader{}, err
+	}
+	if secrets == nil {
+		return SecretLoader{}, errors.New("There are no secrets in the given path.")
+	}
+	return SecretLoader{data: secrets, config: cf}, nil
+}
+
+// Attempt login to the vault server using the given auth token
+func Login(cf Config) (string, error) {
+	loginRequest, err := getLoginEndpoint(cf)
+	if err != nil {
+		return "", err
+	}
+
+	// vault client config
+	config := api.Config{
+		Address: cf.Address,
+	}
+
+	// Enable SSL connection
+	tlsConfig := api.TLSConfig{cf.TLSConfig.CACert, cf.TLSConfig.CAPath, cf.TLSConfig.ClientCert,
+		cf.TLSConfig.ClientKey, cf.TLSConfig.TLSServerName, cf.TLSConfig.Insecure}
+
+	config.ConfigureTLS(&tlsConfig)
+
+	client, err := api.NewClient(&config)
+	if err != nil {
+		Error.Fatalf("Failed to create vault client %v", err)
+	}
+	// Attempt login
+	request := client.NewRequest(http.MethodPost, loginRequest.Endpoint)
+	request.Body = bytes.NewReader(loginRequest.Body)
+	response, err := client.RawRequest(request)
+	if err != nil {
+		Error.Printf("Failed to login to vault using %s auth method", cf.AuthMethod)
+		return "", err
+	}
+	if response.StatusCode != http.StatusOK {
+		Error.Printf("Received error status %d", response.StatusCode)
+	}
+	defer response.Body.Close()
+	// read all the bytes
+	jwt, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		Error.Println("Failed to read the login response")
+		return "", err
+	}
+	var result map[string]interface{}
+	if err := json.Unmarshal([]byte(string(jwt)), &result); err != nil {
+		Error.Println("Failed to unmarshall the login response")
+		return "", err
+	}
+	return result[AUTH].(map[string]interface{})[ClientToken].(string), nil
+}
+
+// ReadSecret form the vault repository for given key
+func (client *SecretLoader) ReadSecret(key string) string {
+	Info.Printf("Reading secret for a given key: %s", key)
+	data, ok := client.data["data"].(map[string]interface{})
+	if ok {
+		return data[key].(string)
+	}
+	return client.data[key].(string)
+}
+
+// For a given auth method the login endpoint is returned
+func getLoginEndpoint(cf Config) (LoginRequest, error) {
+	switch cf.AuthMethod {
+	case KubernetesAuth:
+		body, err := json.Marshal(KubeAuthBody{Role: cf.Role, Jwt: cf.Token})
+		return LoginRequest{Body: body, Endpoint: "/v1/auth/kubernetes/login"}, err
+	case AppRoleAuth:
+		body, err := json.Marshal(AppRoleAuthBody{SecretID: cf.SecretId, RoleID: cf.RoleId})
+		return LoginRequest{Body: body, Endpoint: "/v1/auth/approle/login"}, err
+	default:
+		return LoginRequest{}, errors.New(
+			fmt.Sprintf("Only the following auth method are supported:%s,%s", KubernetesAuth, AppRoleAuth))
+	}
+}
+
+// Load all the secrets into a  Global map
+func loadAllSecrets(token string, cf Config) (map[string]interface{}, error) {
+
+	Info.Printf("Loading secrets from the path: %s", cf.SecretPath)
+	client, err := api.NewClient(&api.Config{Address: cf.Address})
+	client.SetToken(token)
+
+	// Read all the secrets
+	secret, err := client.Logical().Read(cf.SecretPath)
+	if err != nil {
+		Error.Printf("Failed to load the secrets from the given path: %s", cf.SecretPath)
+		return nil, err
+	}
+	if secret == nil {
+		return nil, errors.New("No secrest found for the given path")
+	}
+	return secret.Data, nil
+}

@@ -1,0 +1,27 @@
+{
+  "request_id":"5183be5f-a79b-0d3e-73b3-5829d3496f5d",
+  "lease_id":"",
+  "renewable":false,
+  "lease_duration":0,
+  "data":null,
+  "wrap_info":null,
+  "warnings":null,
+  "auth":{
+    "client_token":"15cbea62-5afd-c038-72f8-320f16755cc8",
+    "accessor":"d95d05b0-b81b-9fcc-3d1d-2f4c91685f9d",
+    "policies":[
+      "app-policy",
+      "default"
+    ],
+    "metadata":{
+      "role":"app-role",
+      "service_account_name":"vault-auth",
+      "service_account_namespace":"default",
+      "service_account_secret_name":"vault-auth-token-qjq9d",
+      "service_account_uid":"5ca3b0e0-2687-11e8-bd14-06e8635f3c8e"
+    },
+    "lease_duration":3600,
+    "renewable":true,
+    "entity_id":"fbafc4bc-1df1-d795-8730-76fe990028fb"
+  }
+}
