@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"github.com/hashicorp/vault/api"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -92,7 +91,7 @@ func TestClientVault_Failed_to_create_client_no_ca_file_found(t *testing.T) {
 
 		t.Logf("\tWhen Sending login request to endpoint:  \"%s\"", "\\v1\\auth\\kubernetes\\login")
 		{
-			tlsCf := api.TLSConfig{CAPath: "data/dummy.ca"}
+			tlsCf := TLSConfig{CAPath: "data/dummy.ca"}
 			config := Config{AuthMethod: KubernetesAuth, Role: "app-role", Address: server.URL, TLSConfig: tlsCf}
 
 			_, err := NewClient(config)
