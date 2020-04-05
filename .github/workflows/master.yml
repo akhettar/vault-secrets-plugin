@@ -25,7 +25,7 @@ jobs:
     - name: Build and Run test
       run: |
         echo Running all the tests
-        ./runt_test.sh
+        ./run_test.sh
     - name: publish test coverage
       run: |
         bash <(curl -s https://codecov.io/bash) -t 8934298a-fd11-4ebc-9cb3-e5a633f36cec
