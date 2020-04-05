@@ -1,6 +1,6 @@
 # Vault Secret Loader
 
-![Go](https://github.com/akhettar/vault-secrets-loader/workflows/Go/badge.svg)
+![Master CI](https://github.com/akhettar/vault-secrets-loader/workflows/Master%20CI/badge.svg)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/80c070367c3842eab07861dfd8127dee)](https://app.codacy.com/manual/akhettar/vault-secrets-loader?utm_source=github.com&utm_medium=referral&utm_content=akhettar/vault-secrets-loader&utm_campaign=Badge_Grade_Dashboard)
 
 ![Digging for secrets](working-hard.png) 
