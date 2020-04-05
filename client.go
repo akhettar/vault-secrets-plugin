@@ -159,20 +159,21 @@ func Login(cf Config) (string, error) {
 		return "", err
 	}
 
-	// vault client config
-	config := api.Config{
-		Address: cf.Address,
-	}
-
 	// Enable SSL connection
-	tlsConfig := api.TLSConfig{cf.TLSConfig.CACert, cf.TLSConfig.CAPath, cf.TLSConfig.ClientCert,
-		cf.TLSConfig.ClientKey, cf.TLSConfig.TLSServerName, cf.TLSConfig.Insecure}
+	tlsConfig := api.TLSConfig{cf.TLSConfig.CACert,
+		cf.TLSConfig.CAPath,
+		cf.TLSConfig.ClientCert,
+		cf.TLSConfig.ClientKey,
+		cf.TLSConfig.TLSServerName,
+		cf.TLSConfig.Insecure}
 
+	// vault client config
+	config := api.Config{Address: cf.Address}
 	config.ConfigureTLS(&tlsConfig)
 
 	client, err := api.NewClient(&config)
 	if err != nil {
-		Error.Fatalf("Failed to create vault client %v", err)
+		return "", err
 	}
 	// Attempt login
 	request := client.NewRequest(http.MethodPost, loginRequest.Endpoint)
@@ -184,6 +185,7 @@ func Login(cf Config) (string, error) {
 	}
 	if response.StatusCode != http.StatusOK {
 		Error.Printf("Received error status %d", response.StatusCode)
+		return "", errors.New(fmt.Sprintf("Received error status %d", response.StatusCode))
 	}
 	defer response.Body.Close()
 	// read all the bytes
