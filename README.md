@@ -2,6 +2,7 @@
 
 ![Master CI](https://github.com/akhettar/vault-secrets-loader/workflows/Master%20CI/badge.svg)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/80c070367c3842eab07861dfd8127dee)](https://app.codacy.com/manual/akhettar/vault-secrets-loader?utm_source=github.com&utm_medium=referral&utm_content=akhettar/vault-secrets-loader&utm_campaign=Badge_Grade_Dashboard)
+[![Go Report Card](https://goreportcard.com/badge/github.com/akhettar/vault-secrets-loader)](https://goreportcard.com/report/github.com/akhettar/vault-secrets-loader)
 [![codecov](https://codecov.io/gh/akhettar/vault-secrets-loader/branch/master/graph/badge.svg)](https://codecov.io/gh/akhettar/vault-secrets-loader)
 
 ![Digging for secrets](working-hard.png) 
