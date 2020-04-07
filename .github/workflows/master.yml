@@ -30,5 +30,10 @@ jobs:
       run: |
         bash <(curl -s https://codecov.io/bash) -t 685159dc-bbe2-432e-befa-498af98b7ec2
 
+    - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.17.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
 
 
