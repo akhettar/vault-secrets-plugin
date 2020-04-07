@@ -103,8 +103,7 @@ import (
 
 "fmt"
 "github.com/akhettar/vault-secrets-loader"
-vault "vault-secrets-loader"
-)vault "vault-secrets-loader"
+
 )
 
 func main() {
