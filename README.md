@@ -14,7 +14,52 @@ This library supports two types of vault authentication methods: `Kubernetes` an
 
 Here is an example of the client can be used in app
 
+`The service or the app vault config should look like the following`
+
+```yaml
+auth_method: KUBERNETES
+token: data/token
+role: example_role
+secret_path: secret/data/app/config
+address: http://localhost:8080
+role_id: 62022d0a-b316-30cb-8265-b37da6763012 \
+secret_id: f4a9312b-118c-8d28-fbff-5661760e8a58
+tls_config:
+  ca_cert: eyJhbGciOiJSUzI1NiIsImtpZCI6IjZMNUxjVG1tU
+  ca_path: /var/ca
+  client_cert: eyJhbGciOiJSUzI1NiIsImtpZCI6IjZMNUxjVG1tU
+  client_key: eyJhbGciOiJSUzI1NiIsImtpZCI6IjZMNUxjVG1tU
+  tls_server_name: name
+  insecure: false
+```
+
+
 `Kubernetes auth method`
+
+`With config file`
+```go
+package main
+
+import (
+	"fmt"
+    "github.com/akhettar/vault-secrets-loader"
+)
+
+func main() {
+
+    // Create a client by login into vault and read all the secrets into memory
+	client, err := vault.NewClient("config/config.yml")
+	if err != nil {
+		vault.Error.Fatalf("Failed %v", err)
+	}
+
+	// read secret - this read from memory
+	pwd := client.ReadSecret("password")
+	vault.Info.Printf("Password is %s", pwd)
+}
+```
+
+`With Config`
 ```go
 package main
 
@@ -37,7 +82,7 @@ func main() {
                 TLSConfig:tlsConfig}
 
     // Create a client by login into vault and read all the secrets into memory
-	client, err := vault.NewClient(config)
+	client, err := vault.NewClientWithConfig(config)
 	if err != nil {
 		vault.Error.Fatalf("Failed %v", err)
 	}
@@ -54,8 +99,11 @@ func main() {
 package main
 
 import (
-	"fmt"
-    "github.com/akhettar/vault-secrets-loader"
+
+"fmt"
+"github.com/akhettar/vault-secrets-loader"
+vault "vault-secrets-loader"
+)vault "vault-secrets-loader"
 )
 
 func main() {
@@ -68,10 +116,11 @@ func main() {
                 SecretPath: "secret/data/myapp/config",
                 AuthMethod: vault.AppRoleAuth,
                 SecretId:"056a8b44-8473-e7d1-f76b-af86144fcabe",
-                RoleId:"62022d0a-b316-30cb-8265-b37da6763012"}
+                RoleId:"62022d0a-b316-30cb-8265-b37da6763012", 
+                TLSConfig: tlsConfig}}
 
     // Create a client by login into vault and read all the secrets into memory
-	client, err := vault.NewClient(config)
+	client, err := vault.NewClientWithConfig(config)
 	if err != nil {
 		vault.Error.Fatalf("Failed %v", err)
 	}
@@ -90,7 +139,7 @@ These are the environment variables required for this tool.
 | `Role`                  | The role name chosen for the service account        | Yes, only for `kube auth method`   |
 | `SecretPath`            | The secret path where to source all the secret from for a given service                | Yes  |
 | `SecretPath`            | The secret path where to source all the secret from for a given service                | Yes  |
-| `Token`                 | The kube token, normally present here: /var/run/secrets/kubernetes.io/serviceaccount/token  | Yes  |
+| `Token`                 | The kube token path, normally present here: /var/run/secrets/kubernetes.io/serviceaccount/token  | Yes  |
 | `SecretId`              | The secretId for the role app auth  | Yes, only for `role app auth` method |
 | `RoleId`                | The role Id for the role app auth   | Yes, only for the `role app auth` method   |
 | `CAPath`                | the Vault server SSL certificate   | Yes, if tls connection is enabled   |

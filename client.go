@@ -1,4 +1,4 @@
-package main
+package vault
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hashicorp/vault/api"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -60,28 +61,28 @@ type AuthMethod string
 type Config struct {
 
 	// AuthMethod the authentication method
-	AuthMethod AuthMethod
+	AuthMethod AuthMethod `yaml:"auth_method"`
 
-	// Token the vault kube token only required fro kube auth method
-	Token string
+	// Token the vault kube token path only required fro kube auth method
+	Token string `yaml:"token"`
 
 	// Role The role attached to the JWT vault token
-	Role string
+	Role string `yaml:"role"`
 
 	// SecretPath a string the secret path
-	SecretPath string
+	SecretPath string `yaml:"secret_path"`
 
 	// Address the vault url
-	Address string
+	Address string `yaml:"address"`
 
 	// TLSConfig the tls config
-	TLSConfig TLSConfig
+	TLSConfig TLSConfig `yaml:"tls_config"`
 
 	// RoleId only required for App role auth method
-	RoleId string
+	RoleId string `yaml:"role_id"`
 
 	//SecretId only required for app role auth method
-	SecretId string
+	SecretId string `yaml:"secret_id"`
 }
 
 // TLSConfig contains the parameters needed to configure TLS on the HTTP client
@@ -89,24 +90,24 @@ type Config struct {
 type TLSConfig struct {
 	// CACert is the path to a PEM-encoded CA cert file to use to verify the
 	// Vault server SSL certificate.
-	CACert string
+	CACert string `yaml:"ca_cert"`
 
 	// CAPath is the path to a directory of PEM-encoded CA cert files to verify
 	// the Vault server SSL certificate.
-	CAPath string
+	CAPath string `yaml:"ca_path"`
 
 	// ClientCert is the path to the certificate for Vault communication
-	ClientCert string
+	ClientCert string `yaml:"client_cert"`
 
 	// ClientKey is the path to the private key for Vault communication
-	ClientKey string
+	ClientKey string `yaml:"client_key"`
 
 	// TLSServerName, if set, is used to set the SNI host when connecting via
 	// TLS.
-	TLSServerName string
+	TLSServerName string `yaml:"tls_server_name"`
 
 	// Insecure enables or disables SSL verification
-	Insecure bool
+	Insecure bool `yaml:"insecure"`
 }
 
 // SecretLoader used for Vault HTTP client
@@ -133,8 +134,8 @@ type LoginRequest struct {
 	Endpoint string
 }
 
-// NewClient returns an instance of the SecretLoader
-func NewClient(cf Config) (SecretLoader, error) {
+// NewClientWithConfig returns an instance of the SecretLoader
+func NewClientWithConfig(cf Config) (SecretLoader, error) {
 	// 1. Login to vault using the provided Token
 	token, err := Login(cf)
 	if err != nil {
@@ -152,9 +153,25 @@ func NewClient(cf Config) (SecretLoader, error) {
 	return SecretLoader{data: secrets, config: cf}, nil
 }
 
+// NewClient returns an instance of the Secret Loader with the given configuration file
+func NewClient(file string) (SecretLoader, error) {
+	var config Config
+	cf, err := ioutil.ReadFile(file)
+	if err != nil {
+		return SecretLoader{}, err
+	}
+
+	// unmarshall the config
+	err = yaml.Unmarshal(cf, &config)
+	if err != nil {
+		return SecretLoader{}, err
+	}
+	return NewClientWithConfig(config)
+}
+
 // Login to the vault server using the given auth token
 func Login(cf Config) (string, error) {
-	loginRequest, err := getLoginEndpoint(cf)
+	loginRequest, err := buildLoginRequest(cf)
 	if err != nil {
 		return "", err
 	}
@@ -202,21 +219,28 @@ func Login(cf Config) (string, error) {
 	return result[AUTH].(map[string]interface{})[ClientToken].(string), nil
 }
 
-// ReadSecret form the vault repository for given key
+// ReadSecret form the vault repository for given key. If the secret is not present this functions returns an empty string
 func (client *SecretLoader) ReadSecret(key string) string {
 	Info.Printf("Reading secret for a given key: %s", key)
 	data, ok := client.data["data"].(map[string]interface{})
 	if ok {
-		return data[key].(string)
+		if val := data[key]; val != nil {
+			return val.(string)
+		}
+		return ""
 	}
-	return client.data[key].(string)
+	if val, ok := client.data[key]; ok {
+		return val.(string)
+	}
+	return ""
 }
 
 // For a given auth method the login endpoint is returned
-func getLoginEndpoint(cf Config) (LoginRequest, error) {
+func buildLoginRequest(cf Config) (LoginRequest, error) {
 	switch cf.AuthMethod {
 	case KubernetesAuth:
-		body, err := json.Marshal(KubeAuthBody{Role: cf.Role, Jwt: cf.Token})
+		token, err := ioutil.ReadFile(cf.Token)
+		body, err := json.Marshal(KubeAuthBody{Role: cf.Role, Jwt: string(token)})
 		return LoginRequest{Body: body, Endpoint: "/v1/auth/kubernetes/login"}, err
 	case AppRoleAuth:
 		body, err := json.Marshal(AppRoleAuthBody{SecretID: cf.SecretId, RoleID: cf.RoleId})

@@ -1,4 +1,4 @@
-package main
+package vault
 
 import (
 	"errors"
@@ -12,7 +12,7 @@ const (
 	ExpectedToken = "15cbea62-5afd-c038-72f8-320f16755cc8"
 	CheckMark     = "\u2713"
 	BallotX       = "\u2717"
-	Token         = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjZMNUxjVG1tUFpwa0NCaUpMdTNIRnNsZUNvRmRyejFmY3ZOaGxiSUo2LUEifQ.eyJpc3MiOiJrd"
+	Token         = "data/token"
 )
 
 func TestClientVault_LoginKubeAuthMethod(t *testing.T) {
@@ -94,7 +94,7 @@ func TestClientVault_Create_Client_Invalid_response(t *testing.T) {
 		t.Logf("\tWhen Sending login request to endpoint:  \"%s\"", "\\v1\\auth\\kubernetes\\login")
 		{
 			config := Config{AuthMethod: KubernetesAuth, Token: Token, Role: "app-role", Address: server.URL}
-			_, err := NewClient(config)
+			_, err := NewClientWithConfig(config)
 			if err.Error() == "invalid character '}' looking for beginning of object key string" {
 				t.Logf("\t\tShould receive unmarshall error \"%s\" . %v", err.Error(), CheckMark)
 			} else {
@@ -114,8 +114,8 @@ func TestClientVault_Failed_to_create_Client_JWT_not_present(t *testing.T) {
 
 		t.Logf("\tWhen Sending login request to endpoint:  \"%s\"", "\\v1\\auth\\kubernetes\\login")
 		{
-			config := Config{AuthMethod: KubernetesAuth, Role: "app-role", Address: server.URL}
-			_, err := NewClient(config)
+			config := Config{Address: server.URL, AuthMethod: KubernetesAuth}
+			_, err := NewClientWithConfig(config)
 
 			if err != nil {
 				t.Logf("\t\tCreate client fails with message  \"%s\" . %v", err.Error(), CheckMark)
@@ -138,7 +138,7 @@ func TestClientVault_Failed_to_create_client_no_ca_file_found(t *testing.T) {
 			tlsCf := TLSConfig{CAPath: "data/dummy.ca"}
 			config := Config{AuthMethod: KubernetesAuth, Role: "app-role", Address: server.URL, TLSConfig: tlsCf}
 
-			_, err := NewClient(config)
+			_, err := NewClientWithConfig(config)
 
 			if err != nil {
 				t.Logf("\t\tCreate client fails with message  \"%s\" . %v", err.Error(), CheckMark)
@@ -159,7 +159,7 @@ func TestClientVault_Login_Failure_With_Error(t *testing.T) {
 		t.Logf("\tWhen Sending login request to endpoint:  \"%s\"", "\\v1\\auth\\kubernetes\\login")
 		{
 			config := Config{AuthMethod: KubernetesAuth, Role: "app-role", Address: server.URL}
-			_, err := NewClient(config)
+			_, err := NewClientWithConfig(config)
 
 			if err != nil {
 				t.Logf("\t\tlogin to the vault server should have failed with the following error message: \"%s\" . %v", err.Error(), CheckMark)
@@ -180,7 +180,7 @@ func TestClientVault_Login_Failure_With_Internal_Service_Error(t *testing.T) {
 		t.Logf("\tWhen Sending login request to endpoint:  \"%s\"", "\\v1\\auth\\kubernetes\\login")
 		{
 			config := Config{AuthMethod: KubernetesAuth, Role: "app-role", Address: server.URL}
-			_, err := NewClient(config)
+			_, err := NewClientWithConfig(config)
 
 			if err != nil {
 				t.Logf("\t\tlogin to the vault server should have failed with the following error message: \"%s\" . %v", err.Error(), CheckMark)
@@ -202,7 +202,7 @@ func TestClientVault_Load_All_Secrets_With_Internal_Service_Error(t *testing.T) 
 		t.Logf("\tWhen Sending load secrets to endpoint:  \"%s\"", "\\v1\\secret\\app\\app-name\\dev")
 		{
 			config := Config{AuthMethod: KubernetesAuth, Role: "app-role", Address: server.URL}
-			_, err := NewClient(config)
+			_, err := NewClientWithConfig(config)
 
 			if err != nil {
 				t.Logf("\t\tLoading secrets should have failed: \"%s\" . %v", err.Error(), CheckMark)
@@ -224,7 +224,7 @@ func TestClientVault_Load_All_Secrets_With_Error(t *testing.T) {
 		t.Logf("\tWhen Sending load secrets to endpoint:  \"%s\"", "\\v1\\secret\\app\\app-name\\dev")
 		{
 			config := Config{AuthMethod: KubernetesAuth, Role: "app-role", Address: server.URL}
-			_, err := NewClient(config)
+			_, err := NewClientWithConfig(config)
 
 			if err != nil {
 				t.Logf("\t\tLoading secrets should have failed: \"%s\" . %v", err.Error(), CheckMark)
@@ -247,7 +247,7 @@ func TestClientVault_Load_All_Secrets_No_Secrets_Found(t *testing.T) {
 		t.Logf("\tWhen Sending Load secrets to endpoint:  \"%s\"", "\\v1\\secret\\app\\app-name\\dev")
 		{
 			config := Config{AuthMethod: KubernetesAuth, Role: "app-role", Address: server.URL}
-			_, err := NewClient(config)
+			_, err := NewClientWithConfig(config)
 
 			if err != nil {
 				t.Logf("\t\tLoading secrets should have failed: \"%s\" . %v", err.Error(), CheckMark)
@@ -270,7 +270,7 @@ func TestClientVault_Load_All_Secrets_handle_invalid_response(t *testing.T) {
 		t.Logf("\tWhen Sending load secrets to endpoint:  \"%s\"", "\\v1\\secret\\app\\app-name\\dev")
 		{
 			config := Config{AuthMethod: KubernetesAuth, Role: "app-role", Address: server.URL}
-			_, err := NewClient(config)
+			_, err := NewClientWithConfig(config)
 
 			if err != nil {
 				t.Logf("\t\tLoading secrets should have failed: \"%s\" . %v", err.Error(), CheckMark)
@@ -281,7 +281,7 @@ func TestClientVault_Load_All_Secrets_handle_invalid_response(t *testing.T) {
 	}
 }
 
-func TestClientVault_ReadSecret(t *testing.T) {
+func TestClientVault_ReadSecretV1(t *testing.T) {
 	t.Logf("Given the vault server is up and running")
 	{
 		loginResponse, _ := ioutil.ReadFile("data/login_response.json")
@@ -292,7 +292,7 @@ func TestClientVault_ReadSecret(t *testing.T) {
 		t.Logf("\tWhen reading secret")
 		{
 			config := Config{AuthMethod: KubernetesAuth, Role: "app-role", Address: server.URL, SecretPath: "/secret/app/tag-service/dev"}
-			client, _ := NewClient(config)
+			client, _ := NewClientWithConfig(config)
 			password := client.ReadSecret("ADMIN_PASSWORD")
 			uri := client.ReadSecret("MONGO_URI")
 			expectedPassword := "admin"
@@ -308,6 +308,82 @@ func TestClientVault_ReadSecret(t *testing.T) {
 				t.Logf("\t\tThe MONGO_URI secret is successfully read from vaultn \"%s\" . %v", password, CheckMark)
 			} else {
 				t.Errorf("\t\tThe MONGO_URI secret is successfully read from vaultn \"%s\" . %v", password, BallotX)
+			}
+		}
+	}
+}
+
+func TestClientVault_ReadSecretV2(t *testing.T) {
+	t.Logf("Given the vault server is up and running")
+	{
+		loginResponse, _ := ioutil.ReadFile("data/login_response.json")
+		secretResponse, _ := ioutil.ReadFile("data/response-v2.json")
+		server := StubLoginAnGetSecretEndpoints(loginResponse, secretResponse)
+		defer server.Close()
+
+		t.Logf("\tWhen reading secret")
+		{
+			config := Config{AuthMethod: KubernetesAuth, Role: "app-role", Address: server.URL, SecretPath: "/secret/app/tag-service/dev"}
+			client, _ := NewClientWithConfig(config)
+			password := client.ReadSecret("ADMIN_PASSWORD")
+			uri := client.ReadSecret("MONGO_URI")
+			expectedPassword := "admin"
+			expectedURI := "mongodb://user:adminG@dev-cluster.mongodb.net:27017"
+
+			if password == expectedPassword {
+				t.Logf("\t\tThe ADMIN_PASSWORD secret is successfully read from vaultn \"%s\" . %v", password, CheckMark)
+			} else {
+				t.Errorf("\t\tThe ADMIN_PASSWORD secret is successfully read from vaultn \"%s\" . %v", password, BallotX)
+			}
+
+			if uri == expectedURI {
+				t.Logf("\t\tThe MONGO_URI secret is successfully read from vaultn \"%s\" . %v", uri, CheckMark)
+			} else {
+				t.Errorf("\t\tThe MONGO_URI secret is successfully read from vaultn \"%s\" . %v", uri, BallotX)
+			}
+		}
+	}
+}
+
+func TestClientVault_SecretNotFoundV1(t *testing.T) {
+	t.Logf("Given the vault server is up and running")
+	{
+		loginResponse, _ := ioutil.ReadFile("data/login_response.json")
+		secretResponse, _ := ioutil.ReadFile("data/secret_response.json")
+		server := StubLoginAnGetSecretEndpoints(loginResponse, secretResponse)
+		defer server.Close()
+
+		t.Logf("\tWhen reading secret")
+		{
+			config := Config{AuthMethod: KubernetesAuth, Role: "app-role", Address: server.URL, SecretPath: "/secret/app/tag-service/dev"}
+			client, _ := NewClientWithConfig(config)
+			uri := client.ReadSecret("dummy")
+			if uri == "" {
+				t.Logf("\t\tThe dummy secret is not present in valut \"%s\" . %v", uri, CheckMark)
+			} else {
+				t.Errorf("\t\tThe dummy secret is not present in vault \"%s\" . %v", uri, BallotX)
+			}
+		}
+	}
+}
+
+func TestClientVault_SecretNotFoundV2(t *testing.T) {
+	t.Logf("Given the vault server is up and running")
+	{
+		loginResponse, _ := ioutil.ReadFile("data/login_response.json")
+		secretResponse, _ := ioutil.ReadFile("data/response-v2.json")
+		server := StubLoginAnGetSecretEndpoints(loginResponse, secretResponse)
+		defer server.Close()
+
+		t.Logf("\tWhen reading secret")
+		{
+			config := Config{AuthMethod: KubernetesAuth, Role: "app-role", Address: server.URL, SecretPath: "/secret/app/tag-service/dev"}
+			client, _ := NewClientWithConfig(config)
+			uri := client.ReadSecret("dummy")
+			if uri == "" {
+				t.Logf("\t\tThe dummy secret is not present in valut \"%s\" . %v", uri, CheckMark)
+			} else {
+				t.Errorf("\t\tThe dummy secret is not present in vault \"%s\" . %v", uri, BallotX)
 			}
 		}
 	}

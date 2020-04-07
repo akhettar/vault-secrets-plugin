@@ -1,0 +1,14 @@
+auth_method: KUBERNETES
+token: data/token
+role: example_role
+secret_path: secret/data/app/config
+address: http://localhost:8080
+role_id: 62022d0a-b316-30cb-8265-b37da6763012 \
+secret_id: f4a9312b-118c-8d28-fbff-5661760e8a58
+tls_config:
+  ca_cert: eyJhbGciOiJSUzI1NiIsImtpZCI6IjZMNUxjVG1tU
+  ca_path: /var/ca
+  client_cert: eyJhbGciOiJSUzI1NiIsImtpZCI6IjZMNUxjVG1tU
+  client_key: eyJhbGciOiJSUzI1NiIsImtpZCI6IjZMNUxjVG1tU
+  tls_server_name: name
+  insecure: false
