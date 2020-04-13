@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/akhettar/vault-secrets-loader)](https://goreportcard.com/report/github.com/akhettar/vault-secrets-loader)
 [![codecov](https://codecov.io/gh/akhettar/vault-secrets-loader/branch/master/graph/badge.svg)](https://codecov.io/gh/akhettar/vault-secrets-loader)
 
-![Digging for secrets](working-hard.png) 
+![Digging for secrets](working-hard.png) ![Vault](vault.png)
 
 
 This Go library is used to load secrets from the vault server into a global map (memory). This library has been inspired from [the Spring Vault Cloud](https://cloud.spring.io/spring-cloud-vault/reference/html/#vault.config.backends) by which a microservice or an application loads its secrets
