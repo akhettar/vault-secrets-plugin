@@ -166,6 +166,7 @@ See also [Kubernetes auth method](https://www.vaultproject.io/docs/auth/kubernet
 
 The `approle` auth method allows machines or apps to authenticate with `vault-defined roles`. Details on how to enable `app role` auth and how to set it up can be found [Vault project documentation](https://www.vaultproject.io/docs/auth/approle/)
 
-
+# License
+[MIT](LICENSE)
 
 
