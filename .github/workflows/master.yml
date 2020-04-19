@@ -37,9 +37,9 @@ jobs:
         WITH_V: true
 
     - name: Publish the package to go.dev package
-        run: |
-          git pull
-          export latest="$(git describe --tags `git rev-list --tags --max-count=1`)"
-          curl https://proxy.golang.org/github.com/akhettar/vault-secrets-loader/@v/$latest.info
+      run: |
+        git pull
+        export latest="$(git describe --tags `git rev-list --tags --max-count=1`)"
+        curl https://proxy.golang.org/github.com/akhettar/vault-secrets-loader/@v/$latest.info
 
 
