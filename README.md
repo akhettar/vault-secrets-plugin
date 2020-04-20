@@ -4,7 +4,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/80c070367c3842eab07861dfd8127dee)](https://app.codacy.com/manual/akhettar/vault-secrets-loader?utm_source=github.com&utm_medium=referral&utm_content=akhettar/vault-secrets-loader&utm_campaign=Badge_Grade_Dashboard)
 [![Go Report Card](https://goreportcard.com/badge/github.com/akhettar/vault-secrets-loader)](https://goreportcard.com/report/github.com/akhettar/vault-secrets-loader)
 [![codecov](https://codecov.io/gh/akhettar/vault-secrets-loader/branch/master/graph/badge.svg)](https://codecov.io/gh/akhettar/vault-secrets-loader)
-[![GoDoc](https://godoc.org/github.com/akhettar/vault-secret-loader?status.svg)](https://godoc.org/github.com/akhettar/vault-secrets-loader)
+[![GoDoc](https://godoc.org/github.com/akhettar/vault-secret-plugin?status.svg)](https://godoc.org/github.com/akhettar/vault-secrets-plugin)
 
 
 ![Digging for secrets](working-hard.png) ![Vault](vault.png)
