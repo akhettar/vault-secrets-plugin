@@ -1,4 +1,4 @@
-module vault-secrets-loader
+module vault-secrets-plugin
 
 go 1.14
 
