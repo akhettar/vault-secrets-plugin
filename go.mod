@@ -1,4 +1,4 @@
-module vault-secrets-plugin
+module github.com/akhettar/vault-secrets-plugin
 
 go 1.14
 
