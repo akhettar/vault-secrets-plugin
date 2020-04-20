@@ -134,7 +134,7 @@ func main() {
 }
 ```
 
-## Configuration parameter for the plugin
+## Configuration parameters for the plugin
 
 These are the environment variables required for this tool. 
 
