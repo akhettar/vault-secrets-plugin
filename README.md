@@ -1,4 +1,4 @@
-# Vault Secret Loader
+# Vault Secret Plugin
 
 ![Master CI](https://github.com/akhettar/vault-secrets-loader/workflows/Master%20CI/badge.svg)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/80c070367c3842eab07861dfd8127dee)](https://app.codacy.com/manual/akhettar/vault-secrets-loader?utm_source=github.com&utm_medium=referral&utm_content=akhettar/vault-secrets-loader&utm_campaign=Badge_Grade_Dashboard)
@@ -10,9 +10,10 @@
 ![Digging for secrets](working-hard.png) ![Vault](vault.png)
 
 
-This Go library is used to load secrets from the vault server into memory at the start of the service. The secrets then can be accessed from memeory at runtime. This library has been inspired from [the Spring Vault Cloud](https://cloud.spring.io/spring-cloud-vault/reference/html/#vault.config.backends) by which a microservice or an application loads its secrets
+This vault plugin is used to load secrets from the vault server into memory at the start of the service. The secrets then can be accessed from memeory at runtime. This library has been inspired from [the Spring Vault Cloud](https://cloud.spring.io/spring-cloud-vault/reference/html/#vault.config.backends) by which a microservice or an application loads its secrets
 from the vault server at the startup. So the secrets are loaded once into the memory and are accessible throughout the application lifecycle.
 
+## Usage
 This library supports two types of vault authentication methods: `Kubernetes` and `App role` - see below more details on how to instantiate an instance of the vault client
 
 Here is an example of the client can be used in app
@@ -132,6 +133,8 @@ func main() {
 	vault.Info.Printf("Password is %s", pwd)
 }
 ```
+
+## Configuration parameter for the plugin
 
 These are the environment variables required for this tool. 
 
