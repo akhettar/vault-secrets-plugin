@@ -46,7 +46,7 @@ package main
 
 import (
 	"fmt"
-    "github.com/akhettar/vault-secrets-loader"
+    "github.com/akhettar/vault-secrets-plugin"
 )
 
 func main() {
@@ -69,7 +69,7 @@ package main
 
 import (
 	"fmt"
-    "github.com/akhettar/vault-secrets-loader"
+    "github.com/akhettar/vault-secrets-plugin"
 )
 
 func main() {
@@ -105,7 +105,7 @@ package main
 import (
 
 "fmt"
-"github.com/akhettar/vault-secrets-loader"
+"github.com/akhettar/vault-secrets-plugin"
 
 )
 

@@ -1,3 +1,14 @@
+// Copyright 2020 Ayache Khettar. All rights reserved.
+// Use of this source file is governed by MIT license
+// license that can be found in LICENSE file.
+
+// Package vault provides a way of loading all the secrets for
+// a given Go application or a service into memory. These secrets
+// are then available for the application to use at run time.
+
+// Two methods of authentication are supported by this library namely:
+// Kubernetes authentication and App role authentication
+
 package vault
 
 import (
@@ -31,9 +42,6 @@ const (
 
 	// App Role
 	AppRoleAuth = "APP_ROLE"
-
-	// Login Endpoint
-	LoginEndpoint = "LOGIN_ENDPOINT"
 )
 
 var (
